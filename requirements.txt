@@ -1,0 +1,7 @@
+streamlit
+openai
+langchain
+pinecone
+streamlit_chat
+os
+
