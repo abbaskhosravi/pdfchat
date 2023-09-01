@@ -1,5 +1,6 @@
 
 #%% libs
+# pip install langchain streamlit streamlit-chat pinecone-client openai
 import os
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
@@ -21,14 +22,16 @@ import pinecone
 #%% app layout
 with st.sidebar:
     st.title('🤖💬 Q & A App')
-    st.subheader("Chat with your own documents and private knowledge base")
-    # openai.api_key = st.text_input('Enter OpenAI API token:', type='password')
-    # openai.api_key = os.getenv('OPENAI_API_KEY')
-    openai.api_key = "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"
-    if not (openai.api_key.startswith('sk-') and len(openai.api_key)==51):
-        st.warning('Please set your OpenAI API key!', icon='⚠️')
+    st.subheader("Chat with your PDFs")
+    if 'OPENAI_API_KEY' in st.secrets:
+        st.success('API key already provided!', icon='✅')
+        openai.api_key = st.secrets['OPENAI_API_KEY']
     else:
-        st.success('Your OpenAI API key is valid.', icon='👍')
+        openai.api_key = st.text_input('Enter OpenAI API token:', type='password')
+        if not (openai.api_key.startswith('sk-') and len(openai.api_key)==51):
+            st.warning('Please enter your credentials!', icon='⚠️')
+        else:
+            st.success('Your OpenAI API key is valid.', icon='👍')
     
     # select the model
     selected_model = st.selectbox("**Select a model**", ["gpt-3.5-turbo", "gpt-4"])
@@ -56,7 +59,7 @@ conversation = ConversationChain(memory=st.session_state.buffer_memory, prompt=p
 #%% Pinecone vector DB
 embeddings = OpenAIEmbeddings(model_name="ada")
 # pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
-PINECONE_API_KEY = 'a44dbb6b-3d45-44f2-9b01-11756bf1f0a4'
+PINECONE_API_KEY = st.secrets['PINECONE_API_KEY']
 PINECONE_ENVIRONMENT = 'gcp-starter'
 pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index_name = 'pdf-qa-demo'
@@ -64,6 +67,13 @@ index = Pinecone.from_existing_index(index_name, embeddings)
 
 ################################################################################################################
 #%% new functions
+def get_conversation_string():
+    conversation_string = ""
+    for i in range(len(st.session_state['responses'])-1):        
+        conversation_string += "Human: "+st.session_state['requests'][i] + "\n"
+        conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
+    return conversation_string
+
 def get_similiar_docs(vdb_index, query, k=2, score=False):
   if score:
     similar_docs = vdb_index.similarity_search_with_score(query, k=k)
