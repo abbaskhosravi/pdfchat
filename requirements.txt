@@ -25,7 +25,6 @@ dataclasses-json==0.5.14
 debugpy==1.6.7.post1
 decorator==5.1.1
 dnspython==2.4.2
-dotenv==0.0.5
 effdet==0.4.1
 emoji==2.8.0
 executing==1.2.0
