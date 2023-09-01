@@ -64,7 +64,7 @@ PINECONE_ENVIRONMENT = 'gcp-starter'
 pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index_name = 'pdf-qa-demo'
 index = Pinecone.from_existing_index(index_name, embeddings)
-
+print(index)
 ################################################################################################################
 #%% new functions
 def get_conversation_string():
